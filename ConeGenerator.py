@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 class Type(Enum):
 	YELLOW = 1
 	BLUE = 2
-	ORANGE = 3
 
 class Cone:
 	def __init__(self, id, x,y,type):
@@ -25,12 +24,7 @@ class Cone:
 		return self.type
 
 class Generator:
-	def __init__(self,noise = None,blueX=[],blueY=[],yellowX=[],yellowY=[]):
-		'''
-		args:
-			noise: object that has a noise function
-		'''
-		self.noise = noise
+	def __init__(self,blueX=[],blueY=[],yellowX=[],yellowY=[]):
 		self.blueX = blueX
 		self.blueY = blueY
 		self.yellowX = yellowX
@@ -65,36 +59,30 @@ class Generator:
 		'''
 		args:
 			cones: list[Cone]
-			dist: mean distance to add to each cone -> float. Default is 0
 			sd: standard deviation -> float
+			dist: mean distance to add to each cone -> float. Default is 0
 		return:
 			new list of cones with noise
 		'''
-		mean = 10 #need to somehow calculate the mean
-		xNoise = np.random.normal(mean,sd,len(cones))
-		yNoise = np.random.normal(mean,sd,len(cones))
+		xNoise = np.random.normal(dist,sd,len(cones))
+		yNoise = np.random.normal(dist,sd,len(cones))
 		
-		newCones = []
-		counter = 0
-		for c in cones:
-			newCones.append(Cone(c.getId(),c.getX() + xNoise[counter],c.getY() + yNoise[counter],c.getType()))
-			counter += 1
-
-		return newCones
+		return [Cone(cones[i].id,cones[i].x + xNoise[i],cones[i].y + yNoise[i],cones[i].type) for i in range(len(cones))]
 
 
 	@staticmethod
 	def showGraph(cones):
 		for c in cones:
 			color = ""
-			if c.getType() == Type.BLUE:
+			if c.type == Type.BLUE:
 				color = "blue"
 			else:
 				color = "yellow"
 
-			plt.scatter(c.getX(),c.getY(),c = color)
+			plt.scatter(c.x,c.y,c = color)
 
 		plt.show()
+
 
 
 STRAIGHT_RANGE = 9
@@ -103,7 +91,6 @@ C_YELLOW_RANGE  = range(5,12)
 
 blue_half_circle_line = lambda x: math.sqrt(36 - math.pow(x - 8, 2)) + 8 # (x - 8)^2 + (y - 8)^2 = 36
 yellow_half_circle_line = lambda x: math.sqrt(9 - math.pow(x - 8, 2)) + 8 # (x - 8)^2 + (y - 8)^2 = 9
-
 
 g = Generator()
 g.addBlue(np.full(STRAIGHT_RANGE,2),range(STRAIGHT_RANGE))
@@ -117,5 +104,5 @@ g.addYellow(np.full(STRAIGHT_RANGE,11),range(STRAIGHT_RANGE))
 cones = g.generateData()
 Generator.showGraph(cones)
 
-newCones = Generator.addNoise(cones,sd = 0.1)
+newCones = Generator.addNoise(cones,sd = 0.2)
 Generator.showGraph(newCones)
