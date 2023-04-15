@@ -15,13 +15,14 @@ class Cone:
 		self.y = y
 		self.type = type
 
+	def getId(self):
+		return self.id
 	def getX(self):
 		return self.x
 	def getY(self):
 		return self.y
 	def getType(self):
 		return self.type
-
 
 class Generator:
 	def __init__(self,noise = None,blueX=[],blueY=[],yellowX=[],yellowY=[]):
@@ -59,10 +60,28 @@ class Generator:
 
 		return cones
 		
+	@staticmethod
+	def addNoise(cones, sd, dist = 0):
+		'''
+		args:
+			cones: list[Cone]
+			dist: mean distance to add to each cone -> float. Default is 0
+			sd: standard deviation -> float
+		return:
+			new list of cones with noise
+		'''
+		mean = 10 #need to somehow calculate the mean
+		xNoise = np.random.normal(mean,sd,len(cones))
+		yNoise = np.random.normal(mean,sd,len(cones))
+		
+		newCones = []
+		counter = 0
+		for c in cones:
+			newCones.append(Cone(c.getId(),c.getX() + xNoise[counter],c.getY() + yNoise[counter],c.getType()))
+			counter += 1
 
-	def addNoise(self,data):
-		#use the noise object to add noise and than return the new data with noise
-		pass
+		return newCones
+
 
 	@staticmethod
 	def showGraph(cones):
@@ -80,10 +99,10 @@ class Generator:
 
 STRAIGHT_RANGE = 9
 C_BLUE_RANGE = range(2,15)
-C_YELLOW_RANGE  =range(5,12)
+C_YELLOW_RANGE  = range(5,12)
 
-blue_half_circle_line = lambda x: math.sqrt(36 - math.pow(x - 8, 2)) + 8
-yellow_half_circle_line = lambda x: math.sqrt(9 - math.pow(x - 8, 2)) + 8
+blue_half_circle_line = lambda x: math.sqrt(36 - math.pow(x - 8, 2)) + 8 # (x - 8)^2 + (y - 8)^2 = 36
+yellow_half_circle_line = lambda x: math.sqrt(9 - math.pow(x - 8, 2)) + 8 # (x - 8)^2 + (y - 8)^2 = 9
 
 
 g = Generator()
@@ -96,7 +115,7 @@ g.addYellow(C_YELLOW_RANGE,[yellow_half_circle_line(x) for x in C_YELLOW_RANGE])
 g.addYellow(np.full(STRAIGHT_RANGE,11),range(STRAIGHT_RANGE))
 
 cones = g.generateData()
-
-
 Generator.showGraph(cones)
 
+newCones = Generator.addNoise(cones,sd = 0.1)
+Generator.showGraph(newCones)
