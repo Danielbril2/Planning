@@ -2,7 +2,6 @@ from typing import Tuple, Callable, Iterator
 from math import sqrt
 from enum import Enum
 from functools import reduce
-from result import Ok, Err, Result
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from scipy.interpolate import interp1d
