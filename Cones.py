@@ -6,6 +6,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from scipy.optimize import minimize
 
+
 class Color(Enum):
     BLUE = 1
     ORANGE = 3
@@ -92,8 +93,6 @@ def get_cone_x(c:cone)->float:
 def get_cone_y(c:cone)->float:
     return c[1]
 
-
-
 def is_acceleration_track_layout(x: any) -> bool:
     return True
 
@@ -116,6 +115,7 @@ def acceleration_interpolate(at: acceleration_track_layout, interval: int, start
     trackpath:track_path = get_acc_cones(at)
     blue_x = np.array(list(map(lambda cp: get_cone_x(get_blue(cp)), trackpath))).reshape((-1, 1))
     blue_y = np.array(list(map(lambda cp: get_cone_y(get_blue(cp)), trackpath)))
+
     print(blue_x)
     blue_model = LinearRegression()
     blue_model.fit(blue_x, blue_y)
@@ -124,6 +124,7 @@ def acceleration_interpolate(at: acceleration_track_layout, interval: int, start
 
     yellow_x = np.array(list(map(lambda cp: get_cone_x(get_yellow(cp)), trackpath))).reshape((-1, 1))
     yellow_y = np.array(list(map(lambda cp: get_cone_y(get_yellow(cp)), trackpath)))
+
     yellow_model = LinearRegression()
     yellow_model.fit(yellow_x, yellow_y)
     yellow_gen = cones_generator(start_x, finish_x, interval,
@@ -154,6 +155,8 @@ print("dist:",res)
 print("minimum:",res.fun)
 
 """ # pair: yellow_blue_pair = tuple[tuple[1.4, 1.4, Color.BLUE], tuple[1.3, 0.09, Color.YELLOW]]
+=======
+# pair: yellow_blue_pair = tuple[tuple[1.4, 1.4, Color.BLUE], tuple[1.3, 0.09, Color.YELLOW]]
 pair: yellow_blue_pair = ((1.4, 1.4, Color.BLUE), (1.3, 0.09, Color.YELLOW))
 
 cones: list[yellow_blue_pair] = [((1.4, 1.4, Color.BLUE), (1.3, 0.09, Color.YELLOW)),
@@ -169,3 +172,4 @@ cones_b = acceleration_interpolate(atl, 3, 0, 0, 10)
 print(cones_b)
 for cone in cones_b:
     print(cone) """
+
