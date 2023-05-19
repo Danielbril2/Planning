@@ -1,0 +1,18 @@
+{
+  "dockerFile": "Dockerfile",
+  "containerEnv": {
+    "DISPLAY": "${localEnv:DISPLAY}",
+    "DOCKER_HOST": "unix:///var/run/podman/podman.sock"
+  },
+  "runArgs": [
+    "--privileged",
+    "--network=host",
+    "--volume=/run/podman/podman.sock:/var/run/podman/podman.sock"
+  ],
+  "extensions": [
+    "ms-vscode.cpptools",
+    "twxs.cmake",
+    "ms-azuretools.vscode-docker",
+    "ms-python.python"
+  ]
+}

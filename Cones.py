@@ -4,7 +4,7 @@ from enum import Enum
 from functools import reduce
 import numpy as np
 from sklearn.linear_model import LinearRegression
-from scipy.interpolate import interp1d
+from scipy.optimize import minimize
 
 
 class Color(Enum):
@@ -79,6 +79,19 @@ def is_straight(x: any) -> bool:
 
 acceleration_track_layout = Tuple[start_stop_pair, straight]
 
+def get_acc_cones(acc: acceleration_track_layout)->track_path:
+    return acc[1][0]
+
+def get_blue(pair:yellow_blue_pair)->cone:
+    return pair[0]
+
+def get_yellow(pair:yellow_blue_pair)->cone:
+    return pair[1]
+
+def get_cone_x(c:cone)->float:
+    return c[0]
+def get_cone_y(c:cone)->float:
+    return c[1]
 
 def is_acceleration_track_layout(x: any) -> bool:
     return True
@@ -99,16 +112,19 @@ def append(acc: list[float], cp: yellow_blue_pair) -> list[float]:
 def acceleration_interpolate(at: acceleration_track_layout, interval: int, start_x: float, start_y: float,
                              finish_x: float):
     # blue_x = np.array(reduce(lambda acc, cp: acc.append(cp[0][0]), atl[1], list())).reshape((-1, 1))
-    blue_x = np.array(list(map(lambda cp: cp[0][0], at[1][0]))).reshape((-1, 1))
-    blue_y = np.array(list(map(lambda cp: cp[0][1], at[1][0])))
+    trackpath:track_path = get_acc_cones(at)
+    blue_x = np.array(list(map(lambda cp: get_cone_x(get_blue(cp)), trackpath))).reshape((-1, 1))
+    blue_y = np.array(list(map(lambda cp: get_cone_y(get_blue(cp)), trackpath)))
+
     print(blue_x)
     blue_model = LinearRegression()
     blue_model.fit(blue_x, blue_y)
     blue_gen = cones_generator(start_x, finish_x, interval,
                                lambda x: blue_model.coef_ * x + blue_model.intercept_)
 
-    yellow_x = np.array(list(map(lambda cp: cp[1][0], at[1][0]))).reshape((-1, 1))
-    yellow_y = np.array(list(map(lambda cp: cp[1][1], at[1][0])))
+    yellow_x = np.array(list(map(lambda cp: get_cone_x(get_yellow(cp)), trackpath))).reshape((-1, 1))
+    yellow_y = np.array(list(map(lambda cp: get_cone_y(get_yellow(cp)), trackpath)))
+
     yellow_model = LinearRegression()
     yellow_model.fit(yellow_x, yellow_y)
     yellow_gen = cones_generator(start_x, finish_x, interval,
@@ -117,6 +133,29 @@ def acceleration_interpolate(at: acceleration_track_layout, interval: int, start
     return list(map(lambda cp: (blue_gen.__next__() + yellow_gen.__next__())/2, at[1][0]))
 
 
+
+def dist(a:float,c:list(cone)!=None,coefficient:float = 30)->float:
+    curve = lambda a,cone: a*get_cone_x(cone)**2 + a*get_cone_y(cone)**2 -coefficient
+    cone_dist = lambda cone: np.linalg.norm(curve(a,cone))
+    return np.sum(list(map(cone_dist,c)))
+
+def circle_trajectory(cones:track_path = None,coefficient:float = 30):
+    if cones is not None:
+        blue_cones = list(map(lambda y_b_p:get_blue(y_b_p) ,cones))
+        yellow_cones = list(map(lambda y_b_p:get_yellow(y_b_p) ,cones))
+        cones = blue_cones+yellow_cones
+        return minimize(dist,1.0,args=(cones, coefficient), bound=[(0,None)])
+    else:
+        raise np.linalg.LinAlgError
+
+
+cones = [(0, 1,Color.BLUE), (1, 2,Color.YELLOW), (2, 3,Color.BLUE), (3, 4,Color.YELLOW), (4, 5,Color.BLUE)]
+res = minimize(dist,1.0,args=(cones,20),bounds=[(0,None)])
+print("dist:",res)
+print("minimum:",res.fun)
+
+""" # pair: yellow_blue_pair = tuple[tuple[1.4, 1.4, Color.BLUE], tuple[1.3, 0.09, Color.YELLOW]]
+=======
 # pair: yellow_blue_pair = tuple[tuple[1.4, 1.4, Color.BLUE], tuple[1.3, 0.09, Color.YELLOW]]
 pair: yellow_blue_pair = ((1.4, 1.4, Color.BLUE), (1.3, 0.09, Color.YELLOW))
 
@@ -132,4 +171,5 @@ atl: acceleration_track_layout = (((0, 1, Color.ORANGE), (0, 0.05, Color.ORANGE)
 cones_b = acceleration_interpolate(atl, 3, 0, 0, 10)
 print(cones_b)
 for cone in cones_b:
-    print(cone)
+    print(cone) """
+
