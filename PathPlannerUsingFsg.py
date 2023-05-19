@@ -5,36 +5,54 @@ import matplotlib.pyplot as plt
 from fsd_path_planning import PathPlanner, MissionTypes, ConeTypes
 from fsd_path_planning.utils.math_utils import unit_2d_vector_from_angle, rotate
 
+
+###
+# Class to generate cones
+# generates a map with cones placed on the left, right, and unknown sides of the car
+# cones_left: list of left cones
+# cones_right: list of right cones
+# cones_unknown: list of unknown cones
+###
 def buildMap():
-	phi_inner = np.arange(0, np.pi / 2, np.pi / 15) #right cones
-	phi_outer = np.arange(0, np.pi / 2, np.pi / 20) #left cones
+    # np.arange(start, stop, step), np.pi / 2 - range of angles from 0 to pi/2
+    # np.pi / 15 - angle between cones
+	phi_inner = np.arange(0, np.pi / 2, np.pi / 15) # array of angles in radians to represent the positions of the cones on the inner circle
+	phi_outer = np.arange(0, np.pi / 2, np.pi / 20) # array of angles in radians to represent the positions of the cones on the outer circle
 
-	points_inner = unit_2d_vector_from_angle(phi_inner) * 9
-	points_outer = unit_2d_vector_from_angle(phi_outer) * 12
+	# convert the angles to x,y coordinates
+	# unit_2d_vector_from_angle is a utility function that returns a unit vector in the direction of the specified angle
+	points_inner = unit_2d_vector_from_angle(phi_inner) * 9 # multiply by 9 to get the x,y coordinates of the cones on the inner circle
+	points_outer = unit_2d_vector_from_angle(phi_outer) * 12 # multiply by 12 to get the x,y coordinates of the cones on the outer circle
 
-	center = np.mean((points_inner[:2] + points_outer[:2]) / 2, axis=0)
-	points_inner -= center
-	points_outer -= center
+	# center the cones around the origin
+	center = np.mean((points_inner[:2] + points_outer[:2]) / 2, axis=0) # get the center of the cones
+	points_inner -= center	# subtract the center from the points to center the cones around the origin
+	points_outer -= center # subtract the center from the points to center the cones around the origin
 
-	rotated_points_inner = rotate(points_inner, -np.pi / 2)
-	rotated_points_outer = rotate(points_outer, -np.pi / 2)
-	cones_left_raw = rotated_points_inner
-	cones_right_raw = rotated_points_outer
+	# rotate the cones by -pi/2 radians to align the cones with the x-axis
+	# rotate is a utility function that rotates the points by the specified angle
+	rotated_points_inner = rotate(points_inner, -np.pi / 2) # rotate the points by -pi/2 radians
+	rotated_points_outer = rotate(points_outer, -np.pi / 2) # rotate the points by -pi/2 radians
+	cones_left_raw = rotated_points_inner # cones on the left are the cones on the inner circle
+	cones_right_raw = rotated_points_outer # cones on the right are the cones on the outer circle
 
-
+	# shuffle the cones
 	rng = np.random.default_rng(0)
 	rng.shuffle(cones_left_raw)
 	rng.shuffle(cones_right_raw)
 
-
+	# set the car position and direction
 	car_position = np.array([0.0, 0.0])
 	car_direction = np.array([1.0, 0.0])
 
+	# get the cones that are on the left and right of the car
 	mask_is_left = np.ones(len(cones_left_raw), dtype=bool)
 	mask_is_right = np.ones(len(cones_right_raw), dtype=bool)
 
 	# for demonstration purposes, we will only keep the color of the first 4 cones
 	# on each side
+	# the rest of the cones will be set to unknown
+	# filter out cones beyond the fourth cone on each side
 	mask_is_left[np.argsort(np.linalg.norm(cones_left_raw, axis=1))[4:]] = False
 	mask_is_right[np.argsort(np.linalg.norm(cones_right_raw, axis=1))[4:]] = False
 
@@ -46,7 +64,11 @@ def buildMap():
 
 	return cones_left, cones_right, cones_unknown, car_position, car_direction
 
-
+###
+# converts an angle from degrees to radians and returns a unit vector representing the direction of the angle
+# angle: angle in degrees
+# returns: unit vector representing the direction of the angle
+###
 def angle2Vector(angle: float):
 	#first convert radians to the second
 	angle = math.radians(angle) #later will not needed because value will be at radians
@@ -86,18 +108,18 @@ cones_left, cones_right, cones_unknown, car_position, car_direction = buildMap2(
 
 blue_color = "#7CB9E8"
 yellow_color = "gold"
-
-plt.scatter(cones_left[:, 0], cones_left[:, 1], c=blue_color, label="left")
-plt.scatter(cones_right[:, 0], cones_right[:, 1], c=yellow_color, label="right")
+# plot the cones
+plt.scatter(cones_left[:, 0], cones_left[:, 1], c=blue_color, label="left") #plot the blue cones
+plt.scatter(cones_right[:, 0], cones_right[:, 1], c=yellow_color, label="right") #plot the yellow cones
 plt.scatter(cones_unknown[:, 0], cones_unknown[:, 1], c="k", label="unknown")
-plt.legend()
-plt.plot(
+plt.legend() #show the legend
+plt.plot( #plot the car
     [car_position[0], car_position[0] + car_direction[0]],
     [car_position[1], car_position[1] + car_direction[1]],
     c="k",
 )
 
-planner = PathPlanner(MissionTypes.acceleration)
+planner = PathPlanner(MissionTypes.acceleration) #create a path planner
 
 for i, c in enumerate(ConeTypes):
     print(c, f"= {i}")

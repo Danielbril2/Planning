@@ -24,27 +24,54 @@ class Cone:
 	def getType(self):
 		return self.type
 
+###
+# Class to generate cones
+# blueX: list of x coordinates of blue cones
+# blueY: list of y coordinates of blue cones
+# yellowX: list of x coordinates of yellow cones
+# yellowY: list of y coordinates of yellow cones
+###
 class Generator:
 	def __init__(self,blueX=[],blueY=[],yellowX=[],yellowY=[]):
 		self.blueX = blueX
 		self.blueY = blueY
 		self.yellowX = yellowX
 		self.yellowY = yellowY
-
+###
+# Adds a list of x and y coordinates to the blue cones
+# xData: list of x coordinates
+# yData: list of y coordinates
+###
 	def addBlue(self,xData,yData):
 		self.blueX.extend(xData)
 		self.blueY.extend(yData)
-
+###
+# Adds a list of x and y coordinates to the yellow cones
+# xData: list of x coordinates
+# yData: list of y coordinates
+###
 	def addYellow(self,xData,yData):
 		self.yellowX.extend(xData)
 		self.yellowY.extend(yData)
-
+###
+# Adds a list of x and y coordinates to the blue cones
+# xData: list of x coordinates
+# yData: list of y coordinates
+###
 	def getBluePoints(self):
 		return [(self.blueX[i], self.blueY[i]) for i in range(len(self.blueX))]
-
+###
+# Adds a list of x and y coordinates to the yellow cones
+# xData: list of x coordinates
+# yData: list of y coordinates
+###
 	def getYellowPoints(self):
 		return [(self.yellowX[i], self.yellowY[i]) for i in range(len(self.yellowX))]
 
+###
+# Generates a list of cones
+# returns: list of cones
+###
 	def generateData(self):
 		#return list of cones in the right coordinates
 		cones = []
@@ -60,17 +87,17 @@ class Generator:
 			cones.append(c)
 
 		return cones
-		
+
+###
+# adds noise to the cones' coordinates and returns a new list of cones with the added noise
+# cones: list of cones
+# sd: standard deviation -> float
+# dist: mean distance to add to each cone -> float. Default is 0
+# returns: new list of cones with noise
+###
 	@staticmethod
 	def addNoise(cones, sd, dist = 0):
-		'''
-		args:
-			cones: list[Cone]
-			sd: standard deviation -> float
-			dist: mean distance to add to each cone -> float. Default is 0
-		return:
-			new list of cones with noise
-		'''
+     
 		xNoise = np.random.normal(dist,sd,len(cones))
 		yNoise = np.random.normal(dist,sd,len(cones))
 
@@ -82,7 +109,13 @@ class Generator:
 		return newCones
 		#return [Cone(cones[i].id,cones[i].x + xNoise[i],cones[i].y + yNoise[i],cones[i].type) for i in range(len(cones))]
 
-
+###
+# adds noise to the cones' coordinates and returns a new list of cones with the added noise
+# cones: list of cones
+# sd: standard deviation -> float
+# dist: mean distance to add to each cone -> float. Default is 0
+# returns: new list of cones with noise
+###
 	@staticmethod
 	def addNoiseToSide(cones, sd, dist = 0):
 		xNoise = np.random.normal(dist,sd,len(cones))
@@ -96,7 +129,11 @@ class Generator:
 		return newCones
 
 
-
+###
+# The method takes a list of cones and an optional path parameter that represents an additional path to be plotted.
+# cones: list of cones
+# path: list of points to be plotted
+###
 	@staticmethod
 	def showGraph(cones, path = None):
 		for c in cones:
@@ -113,7 +150,6 @@ class Generator:
 				plt.scatter(p[0],p[1],c = "red")
 
 		plt.show()
-
 
 
 def main():
