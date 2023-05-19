@@ -94,17 +94,30 @@ def buildMap2():
 	g.addYellow(np.full(STRAIGHT_RANGE,11),range(STRAIGHT_RANGE))
 
 	car_position = np.array([3.5, 0.0])
-	car_direction = np.array([0.0, 1.0])
-	car_direction = angle2Vector(90)
-
+	car_direction = np.pi /4
+	car_direction_vector = angle2Vector(car_direction)
 	cones_left = g.addNoiseToSide(g.getBluePoints(),sd = 0.1)
 	cones_right = g.addNoiseToSide(g.getYellowPoints(),sd = 0.1)
 
-	return np.array(cones_left), np.array(cones_right), np.zeros((0, 2)), car_position, car_direction
+	return np.array(cones_left), np.array(cones_right), np.zeros((0, 2)), car_position, car_direction,car_direction_vector
 
+def plot_path(path, car_position, car_direction):
+    plt.scatter(cones_left[:, 0], cones_left[:, 1], c=blue_color, label="left")
+    plt.scatter(cones_right[:, 0], cones_right[:, 1], c=yellow_color, label="right")
+    plt.scatter(cones_unknown[:, 0], cones_unknown[:, 1], c="k", label="unknown")
+    plt.legend()
+    car_direction_vector = angle2vector(car_direction)
+    plt.plot(
+        [car_position[0], car_position[0] + car_direction_vector[0]],
+        [car_position[1], car_position[1] + car_direction_vector[1]],
+        c="k",
+    )
+    plt.title("Computed path")
+    plt.plot(*path[:(int(len(path)/2)), 1:3].T)
+    plt.axis("equal")
+    plt.show()
 
-
-cones_left, cones_right, cones_unknown, car_position, car_direction = buildMap2()
+cones_left, cones_right, cones_unknown, car_position, car_direction, car_direction_vector = buildMap2()
 
 blue_color = "#7CB9E8"
 yellow_color = "gold"
@@ -114,8 +127,8 @@ plt.scatter(cones_right[:, 0], cones_right[:, 1], c=yellow_color, label="right")
 plt.scatter(cones_unknown[:, 0], cones_unknown[:, 1], c="k", label="unknown")
 plt.legend() #show the legend
 plt.plot( #plot the car
-    [car_position[0], car_position[0] + car_direction[0]],
-    [car_position[1], car_position[1] + car_direction[1]],
+    [car_position[0], car_position[0] + car_direction_vector[0]],
+    [car_position[1], car_position[1] + car_direction_vector[1]],
     c="k",
 )
 
@@ -132,7 +145,7 @@ cones_by_type[ConeTypes.LEFT] = cones_left
 cones_by_type[ConeTypes.RIGHT] = cones_right
 cones_by_type[ConeTypes.UNKNOWN] = cones_unknown
 
-for _ in range(1):
+for _ in range(5):
 	out = planner.calculate_path_in_global_frame(
 	    cones_by_type, car_position, car_direction, return_intermediate_results=True
 	)
@@ -152,10 +165,10 @@ for _ in range(1):
 	plt.scatter(cones_unknown[:, 0], cones_unknown[:, 1], c="k", label="unknown")
 
 	plt.legend()
-
+	car_direction_vector = angle2Vector(car_direction)
 	plt.plot(
-	    [car_position[0], car_position[0] + car_direction[0]],
-	    [car_position[1], car_position[1] + car_direction[1]],
+	    [car_position[0], car_position[0] + car_direction_vector[0]],
+	    [car_position[1], car_position[1] + car_direction_vector[1]],
 	    c="k",
 	)
 
@@ -163,6 +176,7 @@ for _ in range(1):
 	plt.title("Computed path")
 	plt.plot(*path[:(int(len(path)/2)), 1:3].T)
 	print(path[:, 1:3])
+	print(car_direction)
 
 	#print(path)
 
@@ -174,12 +188,12 @@ for _ in range(1):
 
 	new_direction = np.array([new_point[0] - car_position[0], new_point[1] - car_position[1]])
 
-	magnitude = math.sqrt(sum(component**2 for component in new_direction))
+	magnitude = np.linalg.norm(new_direction)
 
 # Normalize the vector to have a magnitude of 1
-	unit_vector = tuple(component/magnitude for component in new_direction)
+	unit_vector = new_direction / magnitude
 
-	car_direction = unit_vector
+	car_direction = np.arctan2(new_direction[1], new_direction[0])
 	
 	car_position = new_point
 
