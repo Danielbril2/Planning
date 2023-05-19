@@ -2,6 +2,7 @@ import numpy as np
 from enum import Enum
 import math
 import matplotlib.pyplot as plt
+import random
 
 class Type(Enum):
 	YELLOW = 1
@@ -38,6 +39,12 @@ class Generator:
 		self.yellowX.extend(xData)
 		self.yellowY.extend(yData)
 
+	def getBluePoints(self):
+		return [(self.blueX[i], self.blueY[i]) for i in range(len(self.blueX))]
+
+	def getYellowPoints(self):
+		return [(self.yellowX[i], self.yellowY[i]) for i in range(len(self.yellowX))]
+
 	def generateData(self):
 		#return list of cones in the right coordinates
 		cones = []
@@ -66,12 +73,32 @@ class Generator:
 		'''
 		xNoise = np.random.normal(dist,sd,len(cones))
 		yNoise = np.random.normal(dist,sd,len(cones))
-		
-		return [Cone(cones[i].id,cones[i].x + xNoise[i],cones[i].y + yNoise[i],cones[i].type) for i in range(len(cones))]
+
+		newCones = []
+		for i in range(len(cones)):
+			if (random.uniform(0,1) < 0.9): # ~every 1 in 10 cones is not shown
+				newCones.append(Cone(cones[i].id,cones[i].x + xNoise[i],cones[i].y + yNoise[i],cones[i].type))
+
+		return newCones
+		#return [Cone(cones[i].id,cones[i].x + xNoise[i],cones[i].y + yNoise[i],cones[i].type) for i in range(len(cones))]
 
 
 	@staticmethod
-	def showGraph(cones):
+	def addNoiseToSide(cones, sd, dist = 0):
+		xNoise = np.random.normal(dist,sd,len(cones))
+		yNoise = np.random.normal(dist,sd,len(cones))
+
+		newCones = []
+		for i in range(len(cones)):
+			if (random.uniform(0,1) < 0.9): # ~every 1 in 10 cones is not shown
+				newCones.append((cones[i][0] + xNoise[i],cones[i][1] + yNoise[i]))
+
+		return newCones
+
+
+
+	@staticmethod
+	def showGraph(cones, path = None):
 		for c in cones:
 			color = ""
 			if c.type == Type.BLUE:
@@ -81,28 +108,36 @@ class Generator:
 
 			plt.scatter(c.x,c.y,c = color)
 
+		if path != None:
+			for p in path:
+				plt.scatter(p[0],p[1],c = "red")
+
 		plt.show()
 
 
 
-STRAIGHT_RANGE = 9
-C_BLUE_RANGE = range(2,15)
-C_YELLOW_RANGE  = range(5,12)
+def main():
+	STRAIGHT_RANGE = 9
+	C_BLUE_RANGE = range(2,15)
+	C_YELLOW_RANGE  = range(5,12)
 
-blue_half_circle_line = lambda x: math.sqrt(36 - math.pow(x - 8, 2)) + 8 # (x - 8)^2 + (y - 8)^2 = 36
-yellow_half_circle_line = lambda x: math.sqrt(9 - math.pow(x - 8, 2)) + 8 # (x - 8)^2 + (y - 8)^2 = 9
+	blue_half_circle_line = lambda x: math.sqrt(36 - math.pow(x - 8, 2)) + 8 # (x - 8)^2 + (y - 8)^2 = 36
+	yellow_half_circle_line = lambda x: math.sqrt(9 - math.pow(x - 8, 2)) + 8 # (x - 8)^2 + (y - 8)^2 = 9
 
-g = Generator()
-g.addBlue(np.full(STRAIGHT_RANGE,2),range(STRAIGHT_RANGE))
-g.addBlue(C_BLUE_RANGE,[blue_half_circle_line(x) for x in C_BLUE_RANGE])
-g.addBlue(np.full(STRAIGHT_RANGE,14),range(STRAIGHT_RANGE))
+	g = Generator()
+	g.addBlue(np.full(STRAIGHT_RANGE,2),range(STRAIGHT_RANGE))
+	g.addBlue(C_BLUE_RANGE,[blue_half_circle_line(x) for x in C_BLUE_RANGE])
+	g.addBlue(np.full(STRAIGHT_RANGE,14),range(STRAIGHT_RANGE))
 
-g.addYellow(np.full(STRAIGHT_RANGE,5),range(STRAIGHT_RANGE))
-g.addYellow(C_YELLOW_RANGE,[yellow_half_circle_line(x) for x in C_YELLOW_RANGE])
-g.addYellow(np.full(STRAIGHT_RANGE,11),range(STRAIGHT_RANGE))
+	g.addYellow(np.full(STRAIGHT_RANGE,5),range(STRAIGHT_RANGE))
+	g.addYellow(C_YELLOW_RANGE,[yellow_half_circle_line(x) for x in C_YELLOW_RANGE])
+	g.addYellow(np.full(STRAIGHT_RANGE,11),range(STRAIGHT_RANGE))
 
-cones = g.generateData()
-Generator.showGraph(cones)
+	cones = g.generateData()
 
-newCones = Generator.addNoise(cones,sd = 0.2)
-Generator.showGraph(newCones)
+	newCones = Generator.addNoise(cones,sd = 0.1)
+	Generator.showGraph(newCones)
+
+
+if __name__ == "__main__":
+	main()
